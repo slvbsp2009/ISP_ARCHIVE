@@ -1,0 +1,99 @@
+# GCC makefile for dmmalvar
+# Pascal Getreuer 
+# April 19, 2011
+
+## 
+# The following three statements determine the build configuration.
+# For handling different image formats, the program can be linked with
+# the libjpeg, libpng, and libtiff libraries.  For each library, set
+# the flags needed for linking.  To disable use of a library, comment
+# its statement.  You can disable all three (BMP is always supported).
+LDLIBJPEG=-ljpeg
+LDLIBPNG=-lpng
+LDLIBTIFF=-ltiff
+
+##
+# Standard make settings
+SHELL=/bin/sh
+CFLAGS=-O2 -ansi -pedantic 
+LDFLAGS=-lm $(LDLIBJPEG) $(LDLIBPNG) $(LDLIBTIFF)
+DMMALVAR_SOURCES=dmmalvarcli.c dmmalvar.c dmbilinear.c imageio.c basic.c
+DMBILINEAR_SOURCES=dmbilinearcli.c dmbilinear.c imageio.c basic.c
+MOSAIC_SOURCES=mosaic.c imageio.c basic.c
+IMDIFF_SOURCES=imdiff.c conv.c imageio.c basic.c
+SOURCES=makefile.gcc makefile.vc readme.html bsd-license.txt \
+basic.c basic.h conv.c conv.h imageio.c imageio.h \
+dmmalvarcli.c dmmalvar.c dmmalvar.h \
+dmbilinearcli.c dmbilinear.c dmbilinear.h \
+mosaic.c imdiff.c doxygen.conf demo demo.bat frog.bmp
+
+## 
+# These statements add compiler flags to define LIBJPEG_SUPPORT, etc.,
+# depending on which libraries have been specified above.
+ifneq ($(LDLIBJPEG),)
+	CJPEG=-DLIBJPEG_SUPPORT
+endif
+ifneq ($(LDLIBPNG),)
+	CPNG=-DLIBPNG_SUPPORT
+endif
+ifneq ($(LDLIBTIFF),)
+	CTIFF=-DLIBTIFF_SUPPORT
+endif
+
+ALLCFLAGS=$(CFLAGS) $(CJPEG) $(CPNG) $(CTIFF)
+DMMALVAR_OBJECTS=$(DMMALVAR_SOURCES:.c=.o)
+DMBILINEAR_OBJECTS=$(DMBILINEAR_SOURCES:.c=.o)
+MOSAIC_OBJECTS=$(MOSAIC_SOURCES:.c=.o)
+IMDIFF_OBJECTS=$(IMDIFF_SOURCES:.c=.o)
+.SUFFIXES: .c .o
+
+.PHONY: all
+all: dmmalvar dmbilinear mosaic imdiff
+
+dmmalvar: $(DMMALVAR_OBJECTS)
+	$(CC) $(DMMALVAR_OBJECTS)  -o $@ $(LDFLAGS)
+
+dmbilinear: $(DMBILINEAR_OBJECTS)
+	$(CC) $(DMBILINEAR_OBJECTS)  -o $@ $(LDFLAGS)
+
+mosaic: $(MOSAIC_OBJECTS)
+	$(CC) $(MOSAIC_OBJECTS) -o $@ $(LDFLAGS)
+
+imdiff: $(IMDIFF_OBJECTS)
+	$(CC) $(IMDIFF_OBJECTS) -o $@ $(LDFLAGS)
+
+.c.o:
+	$(CC) -c $(ALLCFLAGS) $< -o $@
+
+.PHONY: clean
+clean:
+	$(RM) $(DMMALVAR_OBJECTS) $(DMBILINEAR_OBJECTS) $(MOSAIC_OBJECTS) $(IMDIFF_OBJECTS) \
+	dmmalvar dmbilinear mosaic imdiff
+
+.PHONY: rebuild
+rebuild: clean all
+
+# Source documentation with Doxygen
+.PHONY: srcdoc
+srcdoc: $(SOURCES)
+	doxygen doxygen.conf
+
+.PHONY: dist
+dist: $(SOURCES)
+	echo dmmalvar-src > .fname
+	-rm -rf `cat .fname`
+	mkdir `cat .fname`
+	ln $(SOURCES) `cat .fname`
+	tar chzf `cat .fname`.tar.gz `cat .fname`
+	-rm -rf `cat .fname` .fname
+
+.PHONY: dist-zip
+dist-zip: $(SOURCES)
+	echo dmmalvar-src > .fname
+	-rm -rf `cat .fname`
+	mkdir `cat .fname`
+	ln $(SOURCES) `cat .fname`
+	-rm `cat .fname`.zip
+	zip -9 `cat .fname`.zip `cat .fname`/*
+	-rm -rf `cat .fname` .fname
+

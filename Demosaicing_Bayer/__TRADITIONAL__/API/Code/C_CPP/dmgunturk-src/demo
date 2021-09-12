@@ -1,0 +1,48 @@
+#! /bin/sh
+# Demo script for using dmgunturk
+# Pascal Getreuer 2011
+
+# Image credits: the test image frog.bmp is by 
+#   John D. Willson, USGS Amphibian Research and Monitoring Initiative
+#   http://armi.usgs.gov/gallery/detail.php?search=Genus&subsearch=Bufo&id=323
+
+echo ''
+echo '+============================================================================+'
+echo '+ First, we mosaic the input image "frog.bmp"                                +'
+echo '+============================================================================+'
+
+./mosaic -v -pRGGB frog.bmp frog-m.bmp
+
+echo ''
+echo ''
+echo '+============================================================================+'
+echo '+ Now we run Hamilton-Adams demosaicing to create "frog-ha.bmp"...           +'
+echo '+============================================================================+'
+
+./dmha -pRGGB frog-m.bmp frog-ha.bmp
+
+echo ''
+echo ''
+echo '+============================================================================+'
+echo '+ We refine "frog-ha.bmp" with Gunturk demosaicing to obtain "frog-g.bmp"... +'
+echo '+============================================================================+'
+
+./dmgunturk -pRGGB -i input frog-ha.bmp frog-g.bmp
+
+echo ''
+echo ''
+echo '+============================================================================+'
+echo '+ The difference between the original and "frog-ha.bmp" is                   +'
+echo '+============================================================================+'
+
+./imdiff frog.bmp frog-ha.bmp
+
+echo ''
+echo ''
+echo '+============================================================================+'
+echo '+ The difference between the original and "frog-g.bmp" is                    +'
+echo '+============================================================================+'
+
+./imdiff frog.bmp frog-g.bmp
+
+echo ''

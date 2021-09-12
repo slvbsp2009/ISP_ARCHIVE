@@ -1,0 +1,88 @@
+# MSVC Makefile for dmcswl1
+# Pascal Getreuer
+# Nov 24, 2011
+
+#
+# Uncomment and edit the following lines for JPEG support.
+#
+#LIBJPEG_DIR     = "D:/libs/jpeg-8b"
+#LIBJPEG_INCLUDE = -I$(LIBJPEG_DIR)
+#LIBJPEG_LIB     = $(LIBJPEG_DIR)/libjpeg.lib
+
+#
+# Uncomment and edit the following lines for PNG support.
+#
+#ZLIB_DIR     = "D:/libs/zlib"
+#ZLIB_INCLUDE = -I$(ZLIB_DIR)
+#ZLIB_LIB     = $(ZLIB_DIR)/zlib.lib
+#LIBPNG_DIR     = "D:/libs/lpng143"
+#LIBPNG_INCLUDE = -I$(LIBPNG_DIR)
+#LIBPNG_LIB     = $(LIBPNG_DIR)/libpng.lib
+
+# Radius of the mosaicked contour stencil neighborhood
+RADIUS=4
+
+##
+# Standard make settings
+CFLAGS=-O2 -W3 -D_CRT_SECURE_NO_WARNINGS \
+	$(LIBJPEG_INCLUDE) $(LIBPNG_INCLUDE) $(ZLIB_INCLUDE)
+LDFLAGS=-NODEFAULTLIB:libcmtd -NODEFAULTLIB:msvcrt \
+	$(LIBJPEG_LIB) $(LIBPNG_LIB) $(ZLIB_LIB)
+
+## 
+# These statements add compiler flags to define LIBJPEG_SUPPORT, etc.,
+# depending on which libraries have been specified above.
+!IFDEF LIBJPEG_LIB
+CJPEG=-DLIBJPEG_SUPPORT
+!ENDIF
+
+!IFDEF LIBPNG_LIB
+CPNG=-DLIBPNG_SUPPORT
+!ENDIF
+
+ALLCFLAGS=$(CFLAGS) $(CJPEG) $(CPNG)
+
+DMCSWL1_SOURCES=dmcswl1cli.c dmcswl1.c dmbilinear.c mstencils.c displaycontours.c conv.c psio.c imageio.c basic.c
+DMBILINEAR_SOURCES=dmbilinearcli.c dmbilinear.c imageio.c basic.c
+MOSAIC_SOURCES=mosaic.c imageio.c basic.c
+IMDIFF_SOURCES=imdiff.c conv.c imageio.c basic.c
+GEN_MSTENCILS_SOURCES=gen_mstencils.c edge.c temsub.c basic.c
+DMCSWL1_OBJECTS=$(DMCSWL1_SOURCES:.c=.obj)
+DMBILINEAR_OBJECTS=$(DMBILINEAR_SOURCES:.c=.obj)
+MOSAIC_OBJECTS=$(MOSAIC_SOURCES:.c=.obj)
+IMDIFF_OBJECTS=$(IMDIFF_SOURCES:.c=.obj)
+GEN_MSTENCILS_OBJECTS=$(GEN_MSTENCILS_SOURCES:.c=.obj)
+.SUFFIXES: .c .obj
+
+.PHONY: all
+all: dmcswl1.exe dmbilinear.exe mosaic.exe imdiff.exe gen_mstencils.exe
+
+dmcswl1.exe: $(DMCSWL1_OBJECTS)
+	link $(LDFLAGS) $(DMCSWL1_OBJECTS) -out:$@
+
+dmbilinear.exe: $(DMBILINEAR_OBJECTS)
+	link $(LDFLAGS) $(DMBILINEAR_OBJECTS) -out:$@
+
+mosaic.exe: $(MOSAIC_OBJECTS)
+	link $(LDFLAGS) $(MOSAIC_OBJECTS) -out:$@
+
+imdiff.exe: $(IMDIFF_OBJECTS)
+	link $(LDFLAGS) $(IMDIFF_OBJECTS) -out:$@
+
+gen_mstencils.exe: $(GEN_MSTENCILS_OBJECTS)
+	link $(LDFLAGS) $(GEN_MSTENCILS_OBJECTS) -out:$@
+
+mstencils.c: gen_mstencils.exe mstencils.tem makefile.vc
+	gen_mstencils $(RADIUS) mstencils.tem mstencils.c
+
+.c.obj:
+	$(CC) -c $(ALLCFLAGS) -Tc $<
+
+.PHONY: clean
+clean:
+	del -f -q $(DMCSWL1_OBJECTS) $(DMBILINEAR_OBJECTS) \
+	$(MOSAIC_OBJECTS) $(IMDIFF_OBJECTS) $(GEN_MSTENCILS_OBJECTS) \
+	dmcswl1.exe dmbilinear.exe mosaic.exe imdiff.exe gen_mstencils.exe mstencils.c
+
+.PHONY: rebuild
+rebuild: clean all

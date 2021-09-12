@@ -1,0 +1,16 @@
+Most frequently used Demosaicing Algorithms and their reference Implementation
+===============================================================================
+AHD      | Adaptive Homogeneity-Directed Demoscaicing (Hirakawa & Parks, 2005)
+AP       | Alternating Projections Image Demosaicing ( Gunturk, Mersereau, 2002)
+CEDSC    | Cost-Effective Spatial Correlation Demosaicing (Lee et al.)
+CS       | Contour Stencils Demosaicing  (Getreuer, 2012)
+DFPD     | Directional Filtering & a Posteriori Decision (Menon & Calvango, 2007)
+DVCD     | Variance of Color Differences (Chung  & Chan., 2006)
+HA       | Edge Directed Demisaicing (Hamilton & Adams, 1997)
+HEID     | Highly Effective Iterative Demosaicing, Weighted Edge & Color Difference Interpolation (Su, 2006)
+QHLI/ILI   (Malwar, He Cutler, 2005)
+JDD      | Joint Demosaicing-Denoising  (Hirakawa & Parks, 2006)
+JDD-ADMM | Joint Demosaicing-Denoising  using ADMM for hidden priors minimization (Tan et al, 2017 )
+LASIP    | Local polynomial approx (LPA) + interscect. of confidence intervals (ICI) (Paily et al., 2010)
+LSLC     | Least Square Luma-Chroma Demultiplexed (Jeon & Dubois, 2013) 
+SSD      | Self Similarity driven demosaicing (Buades , Morel, Sber, 2009)

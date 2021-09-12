@@ -1,0 +1,108 @@
+# Makefile for Contour Stencil Demosaicing
+# Pascal Getreuer 
+# Nov 24, 2011
+
+## 
+# The following three statements determine the build configuration.
+# For handling different image formats, the program can be linked with
+# the libjpeg, libpng, and libtiff libraries.  For each library, set
+# the flags needed for linking.  To disable use of a library, comment
+# its statement.  You can disable all three (BMP is always supported).
+LDLIBJPEG=-ljpeg
+LDLIBPNG=-lpng
+LDLIBTIFF=-ltiff
+
+# Radius of the mosaicked contour stencil neighborhood 
+RADIUS=2.5
+
+##
+# Standard make settings
+SHELL=/bin/sh
+CFLAGS=-O3 -ansi -pedantic -Wall -Wextra 
+LDFLAGS=-lm $(LDLIBJPEG) $(LDLIBPNG) $(LDLIBTIFF)
+DMCSWL1_SOURCES=dmcswl1cli.c dmcswl1.c mstencils.c \
+displaycontours.c dmbilinear.c conv.c psio.c imageio.c basic.c
+DMBILINEAR_SOURCES=dmbilinearcli.c dmbilinear.c imageio.c basic.c
+MOSAIC_SOURCES=mosaic.c imageio.c basic.c
+IMDIFF_SOURCES=imdiff.c conv.c imageio.c basic.c
+GEN_MSTENCILS_SOURCES=gen_mstencils.c edge.c temsub.c basic.c
+SOURCES=makefile.gcc makefile.vc readme.html bsd-license.txt \
+basic.h basic.c inv3x3.h imageio.c imageio.h psio.c psio.h edge.c edge.h \
+dmcswl1cli.c dmcswl1.c dmcswl1.h displaycontours.c displaycontours.h \
+mosaic.c imdiff.c mstencils.tem gen_mstencils.c mstencils.c mstencils.h \
+temsub.c temsub.h dmbilinearcli.c dmbilinear.c dmbilinear.h demo demo.bat \
+conv.c conv.h frog.bmp doxygen.conf
+
+## 
+# These statements add compiler flags to define LIBJPEG_SUPPORT, etc.,
+# depending on which libraries have been specified above.
+ifneq ($(LDLIBJPEG),)
+	CJPEG=-DLIBJPEG_SUPPORT
+endif
+ifneq ($(LDLIBPNG),)
+	CPNG=-DLIBPNG_SUPPORT
+endif
+ifneq ($(LDLIBTIFF),)
+	CTIFF=-DLIBTIFF_SUPPORT
+endif
+
+ALLCFLAGS=$(CFLAGS) $(CJPEG) $(CPNG) $(CTIFF)
+DMCSWL1_OBJECTS=$(DMCSWL1_SOURCES:.c=.o)
+DMBILINEAR_OBJECTS=$(DMBILINEAR_SOURCES:.c=.o)
+MOSAIC_OBJECTS=$(MOSAIC_SOURCES:.c=.o)
+IMDIFF_OBJECTS=$(IMDIFF_SOURCES:.c=.o)
+GEN_MSTENCILS_OBJECTS=$(GEN_MSTENCILS_SOURCES:.c=.o)
+.SUFFIXES: .c .o
+.PHONY: all clean rebuild srcdoc dist dist-zip
+
+all: dmcswl1 dmbilinear mosaic imdiff
+
+dmcswl1: $(DMCSWL1_OBJECTS)
+	$(CC) $(LDFLAGS) $(DMCSWL1_OBJECTS) -o $@
+
+dmbilinear: $(DMBILINEAR_OBJECTS)
+	$(CC) $(LDFLAGS) $(DMBILINEAR_OBJECTS) -o $@
+
+mosaic: $(MOSAIC_OBJECTS)
+	$(CC) $(LDFLAGS) $(MOSAIC_OBJECTS) -o $@
+
+imdiff: $(IMDIFF_OBJECTS)
+	$(CC) $(LDFLAGS) $(IMDIFF_OBJECTS) -o $@
+
+gen_mstencils: $(GEN_MSTENCILS_OBJECTS)
+	$(CC) $(LDFLAGS) $(GEN_MSTENCILS_OBJECTS) -o $@
+
+mstencils.c: gen_mstencils mstencils.tem makefile.gcc
+	./gen_mstencils $(RADIUS) mstencils.tem mstencils.c
+
+.c.o:
+	$(CC) -c $(ALLCFLAGS) $< -o $@
+
+clean:
+	$(RM) $(DMCSWL1_OBJECTS) $(DMBILINEAR_OBJECTS) \
+	$(MOSAIC_OBJECTS) $(IMDIFF_OBJECTS) $(GEN_MSTENCILS_OBJECTS) \
+	dmcswl1 dmbilinear mosaic imdiff gen_mstencils mstencils.c
+
+rebuild: clean all
+
+# Source documentation with Doxygen
+srcdoc: $(SOURCES)
+	doxygen doxygen.conf
+
+dist: $(SOURCES)
+	echo dmcswl1-src > .fname
+	-rm -rf `cat .fname`
+	mkdir `cat .fname`
+	ln $(SOURCES) `cat .fname`
+	tar chzf `cat .fname`.tar.gz `cat .fname`
+	-rm -rf `cat .fname` .fname
+
+dist-zip: $(SOURCES)
+	echo dmcswl1-src > .fname
+	-rm -rf `cat .fname`
+	mkdir `cat .fname`
+	ln $(SOURCES) `cat .fname`
+	-rm `cat .fname`.zip
+	zip -9 `cat .fname`.zip `cat .fname`/*
+	-rm -rf `cat .fname` .fname
+
