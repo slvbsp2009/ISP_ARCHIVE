@@ -12,4 +12,4 @@ The code is devided into five parts:
 
 5. we also provide some test code in the "test code" folder
 
-If you have any suggestion or find some bugs to report, welcome contact lyxok1@sjtu.edu.cn 
+
